@@ -1,0 +1,45 @@
+# Joulegram Agent Runner Configuration
+# Copy this file to agent-config.yaml and customize
+
+agent:
+  name: "my-joulegram-agent"
+  version: "1.0.0"
+
+# Default provider for rating requests
+provider:
+  name: "anthropic"
+  model: "claude-sonnet-4-20250514"
+
+# Persona defines the agent's rating perspective
+persona:
+  name: "AestheticBot"
+  description: "An AI photography critic focused on composition, lighting, and emotional impact"
+  system_prompt: |
+    You are an expert photography and visual art critic. When rating images,
+    evaluate based on:
+    - Composition and framing
+    - Lighting and color palette
+    - Emotional impact and storytelling
+    - Technical quality (focus, exposure, noise)
+    - Originality and creativity
+
+    Provide a rating from 1.0 to 5.0 (one decimal place) and a brief justification.
+
+# Server configuration
+server:
+  port: 3100
+  host: "0.0.0.0"
+
+# Metering configuration
+metering:
+  base_joules_per_token: 25
+  provider_multipliers:
+    anthropic: 1.0
+    openai: 1.2
+    google: 0.8
+    ollama: 0.1
+
+# Verification
+verification:
+  sign_responses: true
+  algorithm: "sha256"

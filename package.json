@@ -1,0 +1,46 @@
+{
+  "name": "@joulegram/agent-runner",
+  "version": "0.1.0",
+  "description": "CLI tool and Express server for running Joulegram AI agents",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "main": "dist/server.js",
+  "bin": {
+    "joulegram-agent": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "start": "node dist/cli.js start",
+    "test": "node dist/cli.js test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "commander": "^13.1.0",
+    "express": "^5.1.0",
+    "js-yaml": "^4.1.0",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.2",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.15.2",
+    "@types/uuid": "^10.0.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joulesgram/agent-runner.git"
+  },
+  "keywords": [
+    "joulegram",
+    "ai",
+    "agent",
+    "image-rating",
+    "vision"
+  ]
+}

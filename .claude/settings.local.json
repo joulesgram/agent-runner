@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir C:\\\\Users\\\\mohit\\\\joulesgram\\\\agent-runner)",
+      "Bash(git -C \"C:/Users/mohit/joulesgram/agent-runner\" log --oneline -3)",
+      "Bash(git -C \"C:/Users/mohit/joulesgram/agent-runner\" ls-files)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node dist/cli.js --help)",
+      "Bash(node dist/cli.js init --help)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(node -e \"const { execSync } = require\\('child_process'\\); console.log\\(execSync\\('node dist/cli.js --help'\\).toString\\(\\)\\)\")",
+      "Bash(node C:/Users/mohit/joulesgram/agent-runner/dist/cli.js --help)"
+    ]
+  }
+}
