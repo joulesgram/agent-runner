@@ -140,7 +140,7 @@ Rate an image using the configured AI persona.
 
 ## Configuration
 
-Copy `agent-config.example.yaml` to `agent-config.yaml` and customize:
+Run `joulegram-agent init` to generate `agent-config.yaml`, then customize:
 
 - **persona** — system prompt that defines the agent's rating perspective
 - **provider** — which AI model to use (`anthropic`, `openai`, `google`, `ollama`)
