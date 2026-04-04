@@ -66,14 +66,162 @@ export function loadConfig(dir: string = process.cwd()): AgentConfig {
   }
 
   const raw = readFileSync(configPath, "utf-8");
-  const config = yaml.load(raw) as AgentConfig;
+  const parsed = yaml.load(raw) as unknown;
+  return validateConfig(parsed);
+}
 
-  if (!config.provider?.name) {
-    throw new Error("Config missing required field: provider.name");
-  }
-  if (!config.persona?.system_prompt) {
-    throw new Error("Config missing required field: persona.system_prompt");
+function validateConfig(config: unknown): AgentConfig {
+  if (!isRecord(config)) {
+    throw new Error("Config root must be an object");
   }
 
-  return config;
+  const agent = getObject(config, "agent");
+  const provider = getObject(config, "provider");
+  const persona = getObject(config, "persona");
+  const server = getObject(config, "server");
+  const metering = getObject(config, "metering");
+  const verification = getObject(config, "verification");
+
+  const validatedServerPort = getFiniteNumber(server, "server.port");
+  if (!Number.isInteger(validatedServerPort)) {
+    throw new Error("Config field server.port must be an integer");
+  }
+  if (validatedServerPort < 1 || validatedServerPort > 65535) {
+    throw new Error("Config field server.port must be in range 1-65535");
+  }
+
+  const baseJoules = getFiniteNumber(
+    metering,
+    "metering.base_joules_per_token"
+  );
+  if (baseJoules < 0) {
+    throw new Error(
+      "Config field metering.base_joules_per_token must be >= 0"
+    );
+  }
+
+  return {
+    agent: {
+      name: getRequiredString(agent, "agent.name"),
+      version: getRequiredString(agent, "agent.version"),
+    },
+    provider: {
+      name: getRequiredString(provider, "provider.name"),
+      model: getRequiredString(provider, "provider.model"),
+    },
+    persona: {
+      name: getRequiredString(persona, "persona.name"),
+      description: getOptionalString(persona, "persona.description"),
+      system_prompt: getRequiredString(persona, "persona.system_prompt"),
+    },
+    server: {
+      host: getRequiredString(server, "server.host"),
+      port: validatedServerPort,
+    },
+    metering: {
+      base_joules_per_token: baseJoules,
+      provider_multipliers: getNumberMap(
+        metering,
+        "metering.provider_multipliers"
+      ),
+    },
+    verification: {
+      sign_responses: getRequiredBoolean(
+        verification,
+        "verification.sign_responses"
+      ),
+      algorithm: getRequiredString(verification, "verification.algorithm"),
+    },
+  };
+}
+
+function getObject(parent: Record<string, unknown>, fieldPath: string) {
+  const key = getFieldName(fieldPath);
+  const value = parent[key];
+  if (!isRecord(value)) {
+    throw new Error(`Config missing required object: ${fieldPath}`);
+  }
+  return value;
+}
+
+function getRequiredString(
+  parent: Record<string, unknown>,
+  fieldPath: string
+): string {
+  const key = getFieldName(fieldPath);
+  const value = parent[key];
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`Config field ${fieldPath} must be a non-empty string`);
+  }
+  return value;
+}
+
+function getOptionalString(
+  parent: Record<string, unknown>,
+  fieldPath: string
+): string {
+  const key = getFieldName(fieldPath);
+  const value = parent[key];
+  if (value === undefined || value === null) {
+    return "";
+  }
+  if (typeof value !== "string") {
+    throw new Error(`Config field ${fieldPath} must be a string`);
+  }
+  return value;
+}
+
+function getRequiredBoolean(
+  parent: Record<string, unknown>,
+  fieldPath: string
+): boolean {
+  const key = getFieldName(fieldPath);
+  const value = parent[key];
+  if (typeof value !== "boolean") {
+    throw new Error(`Config field ${fieldPath} must be a boolean`);
+  }
+  return value;
+}
+
+function getFiniteNumber(
+  parent: Record<string, unknown>,
+  fieldPath: string
+): number {
+  const key = getFieldName(fieldPath);
+  const value = parent[key];
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new Error(`Config field ${fieldPath} must be a finite number`);
+  }
+  return value;
+}
+
+function getNumberMap(
+  parent: Record<string, unknown>,
+  fieldPath: string
+): Record<string, number> {
+  const key = getFieldName(fieldPath);
+  const value = parent[key];
+  if (!isRecord(value)) {
+    throw new Error(`Config field ${fieldPath} must be an object`);
+  }
+
+  const parsed: Record<string, number> = {};
+  for (const [providerName, multiplier] of Object.entries(value)) {
+    if (typeof multiplier !== "number" || !Number.isFinite(multiplier)) {
+      throw new Error(
+        `Config field ${fieldPath}.${providerName} must be a finite number`
+      );
+    }
+    parsed[providerName] = multiplier;
+  }
+  return parsed;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getFieldName(path: string): string {
+  const parts = path.split(".");
+  return parts[parts.length - 1]!;
 }
