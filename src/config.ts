@@ -1,6 +1,10 @@
 import { readFileSync, existsSync, copyFileSync } from "node:fs";
 import { resolve } from "node:path";
 import yaml from "js-yaml";
+import {
+  ALLOWED_VERIFICATION_ALGORITHMS,
+  isAllowedVerificationAlgorithm,
+} from "./verification.js";
 
 export interface PersonaConfig {
   name: string;
@@ -73,6 +77,13 @@ export function loadConfig(dir: string = process.cwd()): AgentConfig {
   }
   if (!config.persona?.system_prompt) {
     throw new Error("Config missing required field: persona.system_prompt");
+  }
+  if (!isAllowedVerificationAlgorithm(config.verification?.algorithm)) {
+    throw new Error(
+      `Config verification.algorithm must be one of: ${ALLOWED_VERIFICATION_ALGORITHMS.join(
+        ", "
+      )}`
+    );
   }
 
   return config;

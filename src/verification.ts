@@ -1,6 +1,16 @@
 import { createHmac, randomUUID } from "node:crypto";
 import type { VerificationConfig } from "./config.js";
 
+export const ALLOWED_VERIFICATION_ALGORITHMS = ["sha256", "sha512"] as const;
+
+export function isAllowedVerificationAlgorithm(
+  algorithm: string
+): algorithm is (typeof ALLOWED_VERIFICATION_ALGORITHMS)[number] {
+  return ALLOWED_VERIFICATION_ALGORITHMS.includes(
+    algorithm as (typeof ALLOWED_VERIFICATION_ALGORITHMS)[number]
+  );
+}
+
 export interface SignedResponse<T> {
   data: T;
   metadata: {

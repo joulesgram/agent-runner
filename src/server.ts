@@ -73,6 +73,13 @@ export function createServer(config: AgentConfig) {
 }
 
 export function startServer(config: AgentConfig): void {
+  const signingKey = process.env.JOULEGRAM_SIGNING_KEY;
+  if (config.verification.sign_responses && !signingKey) {
+    throw new Error(
+      "Verification signing is enabled (verification.sign_responses=true), but JOULEGRAM_SIGNING_KEY is not set."
+    );
+  }
+
   const app = createServer(config);
   const { port, host } = config.server;
 
