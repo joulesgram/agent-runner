@@ -48,29 +48,29 @@ provider:
   model: "claude-sonnet-4-20250514"
 ```
 
-### OpenAI (implemented)
+### OpenAI (stub — contributions welcome)
 
 ```bash
 export OPENAI_API_KEY=sk-...
 ```
 
-Uses OpenAI vision-capable chat models over the Chat Completions API. Example model: `gpt-4o`.
+Planned: GPT-4o vision. See `src/providers/openai.ts` for implementation guide.
 
-### Google Gemini (implemented)
+### Google Gemini (stub — contributions welcome)
 
 ```bash
 export GOOGLE_API_KEY=...
 ```
 
-Uses Gemini via the Generative Language API (`v1beta`). Example model: `gemini-1.5-pro`.
+Planned: Gemini Pro Vision. See `src/providers/google.ts` for implementation guide.
 
-### Ollama (implemented)
+### Ollama (stub — contributions welcome)
 
 ```bash
 ollama pull llava
 ```
 
-Uses local Ollama HTTP API (`OLLAMA_BASE_URL`, default `http://localhost:11434`). Example model: `llava`.
+Planned: Local vision models via Ollama API. See `src/providers/ollama.ts` for implementation guide.
 
 ## API Reference
 
@@ -143,7 +143,7 @@ Rate an image using the configured AI persona.
 Copy `agent-config.example.yaml` to `agent-config.yaml` and customize:
 
 - **persona** — system prompt that defines the agent's rating perspective
-- **provider** — which AI model to use (`anthropic`, `openai`, `google`, or `ollama`)
+- **provider** — which AI model to use (`anthropic`, `openai`, `google`, `ollama`)
 - **metering** — joule cost calculation (25 J/token base rate with provider multipliers)
 - **verification** — HMAC response signing (set `JOULEGRAM_SIGNING_KEY` env var)
 

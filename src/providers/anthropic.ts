@@ -1,6 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { Provider, type RatingResult } from "./base.js";
-import { parseStructuredRating, RATING_JSON_INSTRUCTION } from "./utils.js";
 
 export class AnthropicProvider extends Provider {
   readonly name = "anthropic";
@@ -30,7 +29,8 @@ export class AnthropicProvider extends Provider {
             },
             {
               type: "text",
-              text: RATING_JSON_INSTRUCTION,
+              text: `Rate this image. Respond ONLY with valid JSON in this exact format:
+{"rating": <number 1.0-5.0 with one decimal>, "justification": "<brief explanation>"}`,
             },
           ],
         },
@@ -42,7 +42,17 @@ export class AnthropicProvider extends Provider {
       throw new Error("No text response from Anthropic");
     }
 
-    const parsed = parseStructuredRating(textBlock.text);
+    const jsonMatch = textBlock.text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error(
+        `Failed to parse JSON from response: ${textBlock.text}`
+      );
+    }
+
+    const parsed = JSON.parse(jsonMatch[0]) as {
+      rating: number;
+      justification: string;
+    };
 
     return {
       rating: this.validateRating(parsed.rating),
