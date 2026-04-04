@@ -1,23 +1,67 @@
 import { Provider, type RatingResult } from "./base.js";
+import {
+  fetchImageAsBase64,
+  parseStructuredRating,
+  RATING_JSON_INSTRUCTION,
+} from "./utils.js";
 
-// TODO: Implement Ollama local vision provider
-// 1. Use fetch() to call Ollama REST API at http://localhost:11434
-// 2. Use llava, bakllava, or other vision-capable models
-// 3. POST to /api/generate with image as base64
-// 4. Parse structured JSON rating from response
-// 5. Estimate token usage from response eval_count / prompt_eval_count
+interface OllamaResponse {
+  response?: string;
+  prompt_eval_count?: number;
+  eval_count?: number;
+  model?: string;
+  error?: string;
+}
 
 export class OllamaProvider extends Provider {
   readonly name = "ollama";
 
   async rate(
-    _imageUrl: string,
-    _systemPrompt: string,
-    _model: string
+    imageUrl: string,
+    systemPrompt: string,
+    model: string
   ): Promise<RatingResult> {
-    throw new Error(
-      "Ollama provider not yet implemented. " +
-        "See src/providers/ollama.ts for implementation guide."
-    );
+    const imageData = await fetchImageAsBase64(imageUrl);
+    const ollamaBaseUrl = process.env.OLLAMA_BASE_URL ?? "http://localhost:11434";
+
+    const response = await fetch(`${ollamaBaseUrl}/api/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        system: systemPrompt,
+        prompt: RATING_JSON_INSTRUCTION,
+        images: [imageData.base64Data],
+        stream: false,
+        options: {
+          temperature: 0.2,
+        },
+      }),
+    });
+
+    const payload = (await response.json()) as OllamaResponse;
+    if (!response.ok) {
+      throw new Error(payload.error ?? `Ollama request failed with status ${response.status}`);
+    }
+
+    if (!payload.response) {
+      throw new Error("No text response from Ollama");
+    }
+
+    const parsed = parseStructuredRating(payload.response);
+    const input = payload.prompt_eval_count ?? 0;
+    const output = payload.eval_count ?? 0;
+
+    return {
+      rating: this.validateRating(parsed.rating),
+      justification: parsed.justification,
+      tokens_used: {
+        input,
+        output,
+        total: input + output,
+      },
+      model: payload.model ?? model,
+      provider: this.name,
+    };
   }
 }
