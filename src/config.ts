@@ -1,7 +1,6 @@
 import { readFileSync, existsSync, copyFileSync } from "node:fs";
 import { resolve } from "node:path";
 import yaml from "js-yaml";
-import { getAvailableProviders, getProviderRegistry } from "./providers/index.js";
 
 export interface PersonaConfig {
   name: string;
@@ -72,24 +71,6 @@ export function loadConfig(dir: string = process.cwd()): AgentConfig {
   if (!config.provider?.name) {
     throw new Error("Config missing required field: provider.name");
   }
-
-  const availableProviders = getAvailableProviders();
-  const providerRegistry = getProviderRegistry();
-  const providerEntry = providerRegistry[config.provider.name];
-
-  if (!providerEntry) {
-    throw new Error(
-      `Unknown provider '${config.provider.name}' in config. Available providers: ${availableProviders.join(", ")}`
-    );
-  }
-
-  if (!providerEntry.implemented) {
-    throw new Error(
-      `Configured provider '${config.provider.name}' is not implemented yet. ` +
-        "Update agent-config.yaml to use an implemented provider before starting the server."
-    );
-  }
-
   if (!config.persona?.system_prompt) {
     throw new Error("Config missing required field: persona.system_prompt");
   }
